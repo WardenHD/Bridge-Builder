@@ -1,31 +1,33 @@
 from pynput import keyboard
-
-# print('Press s or n to continue:')
-
-# with keyboard.Events() as events:
-#     # Block for as much as possible
-#     event = events.get(1e6)
-#     if event.key == keyboard.KeyCode.from_char('s'):
-#         print("YES")
-
-import os
-from colorama import just_fix_windows_console
+from colorama import just_fix_windows_console, Cursor
+from time import sleep
 
 from inventory import Inventory
-from keyhandler import KeyFunctions
+from defs import Functions, Constants
+from map import Map
+from title import Title
 
 class Main:
-    just_fix_windows_console() 
+    just_fix_windows_console()
 
     inv = Inventory()
-    inv_keylistener = keyboard.Listener(inv.on_press, inv.on_release)
-    inv_keylistener.start()
-    inv.print()
-    inv_keylistener.join()
+    map = Map()
+    title = Title(Constants.TITLE)
 
-# os.system('cls')
-# # draw interface
-# Colorprint.formatprint(" Bridge Builder                                                  ", bg = Colorprint.Background.MAGENTA)
-# for i in range(8): Colorprint.formatprint(WIDTH * " ", bg = Colorprint.Background.CYAN)
-# colortable.ColorTable
-# # draw inventory for blocks
+    inv_keylistener = keyboard.Listener(inv.on_press, inv.on_release)
+    map_keylistener = keyboard.Listener(map.on_press, map.on_release)
+    inv_keylistener.start()
+    map_keylistener.start()
+
+    while True:
+        print(Cursor.POS(1, 1))
+        Functions.clear()
+
+        title.print()
+        map.print()
+        inv.print()
+
+        # if Functions.get_stage() == Constants.STAGES[1]:
+        #     print(Functions.cursor_pos(map.get_blockpos_x(), map.get_blockpos_y()))
+
+        sleep(0.1)

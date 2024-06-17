@@ -3,9 +3,10 @@ File that stores an Inventory class
 '''
 
 from colorama import Fore, Style
-from defs import Constants, Functions
 from pynput import keyboard
 from random import randint
+
+from defs import Constants, Functions
 
 class Inventory:
     '''
@@ -17,8 +18,8 @@ class Inventory:
         Initializes the inventory with 5 random blocks.
         '''
         self.__inventory: list[list[str]] = self.gen_blocks()
-        self.__selected = 0
-        self.__keys_pressed = set()
+        self.__highlighted = 4
+        self.__selected: int = None
 
     def insertblock(self, index: int) -> None:
         '''
@@ -81,12 +82,18 @@ class Inventory:
             
         print(separator)
 
-    def getselected(self) -> int:
+    def get_selected(self) -> int:
         '''
         Returns the currently selected block
         :return: selected block index
         '''
         return self.__selected
+    
+    def reset_selected(self) -> None:
+        '''
+        Resets the selected block and sets it to None
+        '''
+        self.__selected = None
     
     # Functions for keylistener
 
@@ -95,25 +102,26 @@ class Inventory:
         Function that is called when a key is pressed. Method for keylistener
         :param key: keycode
         ''' 
-        if key == keyboard.Key.left and key not in self.__keys_pressed:
-            self.__selected = (self.__selected - 1) % Constants.INVENTORY_CAPACITY
-            self.selectblock(self.__selected)
-            Functions.clear()
-            self.print()
-        elif key == keyboard.Key.right and key not in self.__keys_pressed:
-            self.__selected = (self.__selected + 1) % Constants.INVENTORY_CAPACITY
-            Functions.clear()
-            self.selectblock(self.__selected)
-            self.print()
+        if not Functions.get_stage() == Constants.STAGES[0]: return
 
-        self.__keys_pressed.add(key)
+        if key == keyboard.Key.left and key not in Functions.keys_pressed:
+            self.__highlighted = (self.__highlighted - 1) % Constants.INVENTORY_CAPACITY
+            self.selectblock(self.__highlighted)
+        elif key == keyboard.Key.right and key not in Functions.keys_pressed:
+            self.__highlighted = (self.__highlighted + 1) % Constants.INVENTORY_CAPACITY
+            self.selectblock(self.__highlighted)
+        elif key == keyboard.Key.enter and key not in Functions.keys_pressed:
+            self.__selected = self.__highlighted
+            Functions.set_stage(Constants.STAGES[1])
+
+        Functions.keys_pressed.add(key)
 
     def on_release(self, key: int) -> bool:
         '''
         Function that is called when a key is released. Method for keylistener
         :param key: keycode
         '''
-        try: self.__keys_pressed.remove(key)
+        try: Functions.keys_pressed.remove(key)
         except KeyError: pass
 
     def __str__(self) -> str:
