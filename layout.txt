@@ -1,0 +1,25 @@
+Bridge Builder
+                                                              
+                                                              
+                                                              
+                                                            
+                                                              
+ s                                                             
+                                                              
+                                                              
+
+mmmmmmm                                     ~~~~~~~
+=======                                     |||||||
+=======                                     =======
+=======                                     =======
+=======                                     =======
+=======                                     =======
+=======MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM=======
++-------------------------------------------------+
+
+
+
++-------------------------------------------------+
+
+<Action Menu>
+Actions: Select(ENTER)  Info(I)  About(A)  Exit(Q)  Restart(R)  Remove(X)
