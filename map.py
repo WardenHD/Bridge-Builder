@@ -51,9 +51,11 @@ class Map:
     
     def print(self) -> None:
         '''
-        Prints the map
+        Prints the map   
         '''
-        print(*self.__lines, sep='\n')
+        # print(*self.__lines, sep='\n')
+        for i in self.__lines:
+            print(i, len(i))
 
     # Block functions
 
@@ -72,12 +74,14 @@ class Map:
         block = list(filter(None, Constants.BLOCKS[index_list]))
         colored_block = Functions.highlight_block(list(block), 
             Constants.BLOCK_COLORS[randint(0, len(Constants.BLOCK_COLORS) - 1)], Back.CYAN)
-        pos_x = self.__blockpos_x + len(Back.CYAN)
 
         for i in range(len(block)):
             line = self.__lines[self.__blockpos_y + i]
+            pos_x = self.__blockpos_x + len(Back.CYAN + Back.GREEN if line[:len(Back.LIGHTBLACK_EX)] != Back.LIGHTBLACK_EX 
+                else Back.LIGHTBLACK_EX + Style.RESET_ALL)
+
             self.__lines[self.__blockpos_y + i] = line[:pos_x] \
-                + (Style.RESET_ALL + block[i] + Back.CYAN) + line[pos_x + len(block[i] + Style.RESET_ALL + Back.CYAN):]
+                + (Style.RESET_ALL + colored_block[i] + Back.CYAN) + line[pos_x + len(block[i]):]
 
     def move_block(self, x: int, y: int) -> None:
         '''

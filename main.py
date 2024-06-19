@@ -35,7 +35,7 @@ class Main:
             block = list(filter(None, Constants.BLOCKS[selectedblock_list]))
 
             map.set_selected_block(selectedblock_list)
-
+            
             # Highlight the block with magenta
             block = Functions.highlight_block(block, Back.MAGENTA, Back.CYAN)
 
