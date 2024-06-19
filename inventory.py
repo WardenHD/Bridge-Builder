@@ -18,18 +18,10 @@ class Inventory:
         Initializes the inventory with 5 random blocks.
         '''
         self.__inventory: list[list[str]] = self.gen_blocks()
-        self.__highlighted = 4
-        self.__selected: int = None
+        self.__highlighted = 0
+        self.__selected = None
 
-    def insertblock(self, index: int) -> None:
-        '''
-        Inserts a random block at a specific index in the inventory.
-        :param index: index from 0
-        '''
-        if index < 0 or index > Constants.INVENTORY_CAPACITY - 1: raise IndexError("Index out of range")
-        self.__inventory[index] = Constants.BLOCKS[randint(0, 9)]
-
-    def getblock(self, index: int) -> list[str]:
+    def get_block(self, index: int) -> list[str]:
         '''
         Returns the block at a specific index in the inventory.
         :param index: index from 0
@@ -38,28 +30,13 @@ class Inventory:
         if index < 0 or index > Constants.INVENTORY_CAPACITY - 1: raise IndexError("Index out of range")
         return self.__inventory[index]
     
-    def removeblock(self, index: int) -> None:
+    def remove_block(self, index: int) -> None:
         '''
-        Removes the block at a specific index in the inventory.
+        Removes the block and insert new at a specific index in the inventory.
         :param index: index from 0
         '''
         if index < 0 or index > Constants.INVENTORY_CAPACITY - 1: raise IndexError("Index out of range")
-        del self.__inventory[index]
-
-    def selectblock(self, index: int) -> list[str]:
-        '''
-        Selects a block from the inventory and highlights it
-        :param index: index from 0
-        :return: block in list of 3 lines
-        '''
-        if index < 0 or index > Constants.INVENTORY_CAPACITY - 1: raise IndexError("Index out of range")
-
-        self.__inventory[index] = [Fore.GREEN + i + Style.RESET_ALL for i in self.__inventory[index]]
-
-        for i, b in enumerate(self.__inventory):
-            if i != index: self.__inventory[i] = [l.replace(Fore.GREEN, '').replace(Style.RESET_ALL, '') for l in b]
-
-        return self.__inventory[index]
+        self.__inventory[index] = Constants.BLOCKS[randint(0, 9)]
 
     def gen_blocks(self) -> list[list[str]]: 
         '''
@@ -74,26 +51,43 @@ class Inventory:
         '''
         Prints the current inventory
         '''
+        # get copy of inventory and highlight the correct block
+        copy = list(self.__inventory)
+        copy[self.__highlighted] = Functions.highlight_block(copy[self.__highlighted], Fore.GREEN, center=True) 
+
+        for i, b in enumerate(copy):
+            if i != self.__highlighted: copy[i] = [l.replace(Fore.GREEN, '').replace(Style.RESET_ALL, '') for l in b]
+
         separator = Constants.WIDTH * '-'
         print(separator)
 
         for i in range(3):
-            print(''.join('    ' + self.__inventory[j][i] + '    ' for j in range(5)))
+            print(''.join('    ' + copy[j][i].center(5) + '    ' for j in range(5)))
             
         print(separator)
 
-    def get_selected(self) -> int:
+    def getselected_list(self) -> int:
         '''
-        Returns the currently selected block
-        :return: selected block index
+        Returns the currently selected block. -1 if block is not found
+        :return: selected block index for blocks list
+        '''
+        for i in range(len(Constants.BLOCKS)): 
+            if Constants.BLOCKS[i][0] == self.get_block(self.__selected)[0]: return i
+
+        return -1
+    
+    def getselected_inv(self) -> int:
+        '''
+        Returns the currently selected block in inventory
+        :return: selected block index for inventory
         '''
         return self.__selected
-    
-    def reset_selected(self) -> None:
+     
+    def resetselected(self) -> None:
         '''
-        Resets the selected block and sets it to None
+        Resets the selected block and sets it to 0
         '''
-        self.__selected = None
+        self.__selected = 0
     
     # Functions for keylistener
 
@@ -106,10 +100,8 @@ class Inventory:
 
         if key == keyboard.Key.left and key not in Functions.keys_pressed:
             self.__highlighted = (self.__highlighted - 1) % Constants.INVENTORY_CAPACITY
-            self.selectblock(self.__highlighted)
         elif key == keyboard.Key.right and key not in Functions.keys_pressed:
             self.__highlighted = (self.__highlighted + 1) % Constants.INVENTORY_CAPACITY
-            self.selectblock(self.__highlighted)
         elif key == keyboard.Key.enter and key not in Functions.keys_pressed:
             self.__selected = self.__highlighted
             Functions.set_stage(Constants.STAGES[1])

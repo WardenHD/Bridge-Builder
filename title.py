@@ -2,6 +2,7 @@
 File that has methods to manage game's title
 '''
 from colorama import Back, Style
+
 from defs import Constants, Functions
 
 class Title:

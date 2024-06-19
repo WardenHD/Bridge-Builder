@@ -17,32 +17,26 @@ class Map:
         '''
         self.__lines = ['' for i in range(Constants.MAP_HEIGHT)]
         self.__top_padding = randint(2, 4)
-        self.fillmap(self.__top_padding)
+        self.__selected_block_list = None
+        self.gen_map()
 
         self.__blockpos_x = Constants.MAP_LAND_LENGTH + 0
         self.__blockpos_y = self.__top_padding + 0
 
-    def get_top_padding(self) -> int:
-        '''
-        Returns the top padding of the map
-        '''
-        return self.__top_padding
-
-    def fillmap(self, top_padding: int):
+    def gen_map(self):
         '''
         Generates the map
-        :param top_padding: the space between grass and top
         '''
         # generating upper layer
-        self.__lines[top_padding] = self.genlayer('~', ' ', char_color=Back.GREEN, space_color=Back.CYAN)
+        self.__lines[self.__top_padding] = self.gen_layer('~', ' ', char_color=Back.GREEN, space_color=Back.CYAN)
         
         # generate other layers
         for i in range(Constants.MAP_HEIGHT):
-            if i < top_padding: self.__lines[i] = Back.CYAN + (Constants.WIDTH * ' ') + Style.RESET_ALL # top
-            elif i == Constants.MAP_HEIGHT - 1: self.__lines[i] = self.genlayer('|', '^', char_color=Back.LIGHTBLACK_EX, space_color=Back.BLUE) # bottom
-            elif i > top_padding: self.__lines[i] = self.genlayer('|', ' ', char_color=Back.LIGHTBLACK_EX, space_color=Back.CYAN) # middle
+            if i < self.__top_padding: self.__lines[i] = Back.CYAN + (Constants.WIDTH * ' ') + Style.RESET_ALL # top
+            elif i == Constants.MAP_HEIGHT - 1: self.__lines[i] = self.gen_layer('|', '^', char_color=Back.LIGHTBLACK_EX, space_color=Back.BLUE) # bottom
+            elif i > self.__top_padding: self.__lines[i] = self.gen_layer('|', ' ', char_color=Back.LIGHTBLACK_EX, space_color=Back.CYAN) # middle
 
-    def genlayer(self, char: str, spacechar: str, char_color: str = '', space_color: str = '') -> str:
+    def gen_layer(self, char: str, spacechar: str, char_color: str = '', space_color: str = '') -> str:
         '''
         Generates a single layer of the map land
         :param char: character to use for land
@@ -61,7 +55,29 @@ class Map:
         '''
         print(*self.__lines, sep='\n')
 
-    # Block moving
+    # Block functions
+
+    def set_selected_block(self, index: int) -> None:
+        '''
+        Sets selected block index
+        :param index: block index in block list
+        '''
+        self.__selected_block_list = index
+
+    def place_block(self, index_list: int) -> None:
+        '''
+        Places block on x and y position
+        :param index_list: index of block in block list
+        '''
+        block = list(filter(None, Constants.BLOCKS[index_list]))
+        colored_block = Functions.highlight_block(list(block), 
+            Constants.BLOCK_COLORS[randint(0, len(Constants.BLOCK_COLORS) - 1)], Back.CYAN)
+        pos_x = self.__blockpos_x + len(Back.CYAN)
+
+        for i in range(len(block)):
+            line = self.__lines[self.__blockpos_y + i]
+            self.__lines[self.__blockpos_y + i] = line[:pos_x] \
+                + (Style.RESET_ALL + block[i] + Back.CYAN) + line[pos_x + len(block[i] + Style.RESET_ALL + Back.CYAN):]
 
     def move_block(self, x: int, y: int) -> None:
         '''
@@ -69,8 +85,12 @@ class Map:
         :param x: x position
         :param y: y position        
         '''
-        self.__blockpos_x = Constants.MAP_LAND_LENGTH + x
-        self.__blockpos_y = 1 + self.__top_padding + y
+        max_width = Constants.WIDTH - Constants.MAP_LAND_LENGTH - len(Constants.BLOCKS[self.__selected_block_list][0])
+        max_height = Constants.MAP_HEIGHT - 1 - len(list(filter(None, Constants.BLOCKS[self.__selected_block_list])))
+
+        if x >= Constants.MAP_LAND_LENGTH and x <= max_width: self.__blockpos_x = x
+ 
+        if y >= self.__top_padding and y <= max_height: self.__blockpos_y = y
 
     def get_blockpos_x(self) -> int:
         '''
@@ -94,15 +114,15 @@ class Map:
         if not Functions.get_stage() == Constants.STAGES[1]: return
 
         if key == keyboard.Key.left and key not in Functions.keys_pressed:
-            self.move_block((self.__blockpos_x - 1) % Constants.WIDTH - Constants.MAP_LAND_LENGTH * 2, self.__blockpos_y)            
+            self.move_block(self.__blockpos_x - 1, self.__blockpos_y)            
         elif key == keyboard.Key.right and key not in Functions.keys_pressed:
-            self.move_block((self.__blockpos_x + 1) % Constants.WIDTH - Constants.MAP_LAND_LENGTH * 2, self.__blockpos_y)
+            self.move_block(self.__blockpos_x + 1, self.__blockpos_y)
         elif key == keyboard.Key.up and key not in Functions.keys_pressed:
-            self.move_block(self.__blockpos_x, (self.__blockpos_y + 1) % Constants.MAP_HEIGHT - 1)
+            self.move_block(self.__blockpos_x, self.__blockpos_y - 1)
         elif key == keyboard.Key.down and key not in Functions.keys_pressed:
-            self.move_block(self.__blockpos_x, (self.__blockpos_y - 1) % Constants.MAP_HEIGHT - 1)
+            self.move_block(self.__blockpos_x, self.__blockpos_y + 1)
         elif key == keyboard.Key.enter and key not in Functions.keys_pressed:
-            Functions.set_stage(Constants.STAGES[0])
+            Functions.set_stage(Constants.STAGES[2])
         # elif key == keyboard.KeyCode.from_char('x'):
         #     Stages.set_stage(Constants.STAGES[0])
         #     self.__block_selected = None
