@@ -13,8 +13,8 @@ class Constants:
     '''
     Class that stores constants for the game
     '''
-    GITHUB_LINK = "https://github.com/WardenHD/Python-Game"
-    LICENSE_LINK = "https://github.com/WardenHD/Python-Game/blob/main/LICENSE"
+    GITHUB_LINK = "https://github.com/WardenHD/Bridge-Builder"
+    LICENSE_LINK = "https://github.com/WardenHD/Bridge-Builder/blob/main/LICENSE"
 
     # Block variables
     # Block variants list - tuple of 3 lines
