@@ -4,6 +4,7 @@ File that stores classes needed for game map
 from random import randint
 from pynput import keyboard
 from colorama import Back, Style
+from re import findall
 
 from defs import Constants, Functions
 
@@ -16,16 +17,24 @@ class Map:
         Initializes the map
         '''
         self.__lines = ['' for i in range(Constants.MAP_HEIGHT)]
-        self.__top_padding = randint(2, 4)
-        self.__selected_block_list = None
-        self.gen_map()
+        self.__top_padding = 0
+        self.__selected_block_list = 0
+
+        self.gen_padding()
+        self.construct()
 
         self.__blockpos_x = Constants.MAP_LAND_LENGTH + 0
         self.__blockpos_y = self.__top_padding + 0
 
-    def gen_map(self):
+    def gen_padding(self) -> None:
         '''
-        Generates the map
+        Generates the top padding of the map
+        '''
+        self.__top_padding = randint(2, 4)
+
+    def construct(self):
+        '''
+        Constructs the map according to the top padding
         '''
         # generating upper layer
         self.__lines[self.__top_padding] = self.gen_layer('~', ' ', char_color=Back.GREEN, space_color=Back.CYAN)
@@ -51,10 +60,27 @@ class Map:
     
     def print(self) -> None:
         '''
-        Prints the map
+        Prints the map   
         '''
         print(*self.__lines, sep='\n')
 
+    def do_testing(self) -> bool:
+        '''
+        Tests whether the bridge is valid
+        :return: if bridge is valid
+        '''
+        ok = True
+
+        if self.__lines[self.__top_padding].find(' ') != -1: ok = False
+        print("First line:", ok)
+
+        for i in range(len(self.__lines)):
+            if i >= self.__top_padding and i < Constants.MAP_HEIGHT - 1 \
+                and len(set(findall(f"[{Constants.BLOCK_CHARS.replace(' ', '')}]", self.__lines[i]))) < 3: ok = False
+            print(str(i) + ':', ok)
+
+        return ok
+ 
     # Block functions
 
     def set_selected_block(self, index: int) -> None:
@@ -64,20 +90,31 @@ class Map:
         '''
         self.__selected_block_list = index
 
-    def place_block(self, index_list: int) -> None:
+    def place_block(self, index_list: int):
         '''
         Places block on x and y position
         :param index_list: index of block in block list
         '''
         block = list(filter(None, Constants.BLOCKS[index_list]))
-        colored_block = Functions.highlight_block(list(block), 
-            Constants.BLOCK_COLORS[randint(0, len(Constants.BLOCK_COLORS) - 1)], Back.CYAN)
-        pos_x = self.__blockpos_x + len(Back.CYAN)
+        lines = []
 
         for i in range(len(block)):
-            line = self.__lines[self.__blockpos_y + i]
-            self.__lines[self.__blockpos_y + i] = line[:pos_x] \
-                + (Style.RESET_ALL + block[i] + Back.CYAN) + line[pos_x + len(block[i] + Style.RESET_ALL + Back.CYAN):]
+            line = [*self.__lines[self.__blockpos_y + i]]
+
+            k = 0
+            x = self.__blockpos_x - Constants.MAP_LAND_LENGTH
+            for j in range(len(line)):
+                if line[j] in Constants.BLOCK_CHARS: 
+                    if k >= x and k < x + len(block[i]) and block[i][k - x] != ' ':
+                        if line[j] != ' ':
+                            Functions.Flags.blocks_intercept = True
+                            return
+                        line[j] = block[i][k - x]            
+                    k += 1
+
+            lines.append(line)
+
+        for i in range(len(lines)): self.__lines[self.__blockpos_y + i] = ''.join(lines[i])
 
     def move_block(self, x: int, y: int) -> None:
         '''
@@ -89,7 +126,6 @@ class Map:
         max_height = Constants.MAP_HEIGHT - 1 - len(list(filter(None, Constants.BLOCKS[self.__selected_block_list])))
 
         if x >= Constants.MAP_LAND_LENGTH and x <= max_width: self.__blockpos_x = x
- 
         if y >= self.__top_padding and y <= max_height: self.__blockpos_y = y
 
     def get_blockpos_x(self) -> int:
@@ -122,11 +158,13 @@ class Map:
         elif key == keyboard.Key.down and key not in Functions.keys_pressed:
             self.move_block(self.__blockpos_x, self.__blockpos_y + 1)
         elif key == keyboard.Key.enter and key not in Functions.keys_pressed:
-            Functions.set_stage(Constants.STAGES[2])
-        # elif key == keyboard.KeyCode.from_char('x'):
-        #     Stages.set_stage(Constants.STAGES[0])
-        #     self.__block_selected = None
-        #     self.move_block(0, 0)
+            Functions.Flags.block_placed = True
+        elif key == keyboard.Key.esc and key not in Functions.keys_pressed:
+            self.move_block(0, 0)
+            self.__selected_block_list = None
+            Functions.set_stage(Constants.STAGES[0])
+        elif key == keyboard.KeyCode.from_char('r') and key not in Functions.keys_pressed:
+            self.move_block(Constants.MAP_LAND_LENGTH, self.__top_padding)
 
         Functions.keys_pressed.add(key)
 

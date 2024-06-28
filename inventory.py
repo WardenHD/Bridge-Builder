@@ -17,9 +17,11 @@ class Inventory:
         '''
         Initializes the inventory with 5 random blocks.
         '''
-        self.__inventory: list[list[str]] = self.gen_blocks()
+        self.__inventory: list[list[str]] = []
         self.__highlighted = 0
         self.__selected = None
+
+        self.gen_blocks()
 
     def get_block(self, index: int) -> list[str]:
         '''
@@ -38,14 +40,14 @@ class Inventory:
         if index < 0 or index > Constants.INVENTORY_CAPACITY - 1: raise IndexError("Index out of range")
         self.__inventory[index] = Constants.BLOCKS[randint(0, 9)]
 
-    def gen_blocks(self) -> list[list[str]]: 
+    def gen_blocks(self) -> None: 
         '''
-        Generates 5 random blocks and puts them in inventory
-        :return: new inventory
+        Generates random blocks and puts them in clear inventory
         '''
-        result = [list(Constants.BLOCKS[randint(0, 9)]) for i in range(Constants.INVENTORY_CAPACITY)]
+        self.__inventory.clear()
 
-        return result
+        for i in range(Constants.INVENTORY_CAPACITY):
+            self.__inventory.append(Constants.BLOCKS[randint(0, 9)])       
     
     def print(self) -> None:
         '''
@@ -105,6 +107,13 @@ class Inventory:
         elif key == keyboard.Key.enter and key not in Functions.keys_pressed:
             self.__selected = self.__highlighted
             Functions.set_stage(Constants.STAGES[1])
+        elif key == keyboard.Key.esc and key not in Functions.keys_pressed: 
+            Functions.set_stage(Constants.STAGES[4])
+        elif key == keyboard.KeyCode.from_char('r') and key not in Functions.keys_pressed:
+            Functions.Flags.restart = True
+            Functions.set_stage(Constants.STAGES[4])
+        elif key == keyboard.KeyCode.from_char('t') and key not in Functions.keys_pressed:
+            Functions.Flags.testing = True
 
         Functions.keys_pressed.add(key)
 

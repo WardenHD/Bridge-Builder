@@ -1,0 +1,29 @@
+Python Project
+
+Main Idea: 
+I decided to make simple 2d game in CLI. The game is called "Bridge Builder". It will be about building a bridge from blocks with different shapes. It won't have real physics, but will have a special feature. 
+
+Special Feature
+To win a game, the bridge needs to be valid.  The game checks whether first line of the bridge doesn't have blank spaces and other lines if they have at least 3 different types of blocks
+
+Notes
+ • You have only 1 attempt to build the bridge
+ • The map will be always flat, but have different elevation
+ • You cannot remove placed block
+ • You can have different profiles
+ • If you lose, your profile score will get 0
+ • In DB (SQL), the number of wins for every profile is stored
+ • The text will be colored with ansi escape codes
+ • Only keys on keyboard for controls, no input()
+
+
+Plan
+ ✓ Make UI
+ ✓ Make block placement
+ ✓ Make testing
+ ✓ Make saves
+ ✓ Make actionbar
+ ✓ Make map generation
+ ✓ Make keyboard input recorder
+ ✓ Make coloured print 
+ ✓ Make cursor movement
