@@ -14,7 +14,8 @@ class Flags:
         self.restart = False
         self.block_placed = False
         self.close = False
-        self.menu = False
+        self.blocks_intercept = False
+        self.testing = False
 
     @property
     def restart(self) -> bool:
@@ -60,21 +61,33 @@ class Flags:
         '''
         if type(value) != bool: raise TypeError("Value must be a boolean")
         self.__close = value
-
+    
     @property
-    def menu(self) -> bool:
+    def blocks_intercept(self) -> bool:
         '''
-        Getter for the close flag
+        Getter for the blocks intercept flag
         '''
-        return self.__menu
+        return self.__blocks_intercept
 
-    @menu.setter
-    def menu(self, value: bool) -> None:
+    @blocks_intercept.setter
+    def blocks_intercept(self, value: bool) -> None:
         '''
-        Setter for the menu flag
+        Setter for the blocks intercept flag
         '''
         if type(value) != bool: raise TypeError("Value must be a boolean")
-        self.__menu = value
+        self.__blocks_intercept = value
     
+    @property
+    def testing(self) -> bool:
+        '''
+        Getter for the testing flag
+        '''
+        return self.__testing
 
-    
+    @testing.setter
+    def testing(self, value: bool) -> None:
+        '''
+        Setter for the testing flag
+        '''
+        if type(value) != bool: raise TypeError("Value must be a boolean")
+        self.__testing = value

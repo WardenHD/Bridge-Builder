@@ -4,6 +4,7 @@ File that stores classes needed for game map
 from random import randint
 from pynput import keyboard
 from colorama import Back, Style
+from re import findall
 
 from defs import Constants, Functions
 
@@ -17,7 +18,7 @@ class Map:
         '''
         self.__lines = ['' for i in range(Constants.MAP_HEIGHT)]
         self.__top_padding = 0
-        self.__selected_block_list = None
+        self.__selected_block_list = 0
 
         self.gen_padding()
         self.construct()
@@ -61,10 +62,25 @@ class Map:
         '''
         Prints the map   
         '''
-        # print(*self.__lines, sep='\n')
-        for i in self.__lines:
-            print(i, len(i))
+        print(*self.__lines, sep='\n')
 
+    def do_testing(self) -> bool:
+        '''
+        Tests whether the bridge is valid
+        :return: if bridge is valid
+        '''
+        ok = True
+
+        if self.__lines[self.__top_padding].find(' ') != -1: ok = False
+        print("First line:", ok)
+
+        for i in range(len(self.__lines)):
+            if i >= self.__top_padding and i < Constants.MAP_HEIGHT - 1 \
+                and len(set(findall(f"[{Constants.BLOCK_CHARS.replace(' ', '')}]", self.__lines[i]))) < 3: ok = False
+            print(str(i) + ':', ok)
+
+        return ok
+ 
     # Block functions
 
     def set_selected_block(self, index: int) -> None:
@@ -74,13 +90,13 @@ class Map:
         '''
         self.__selected_block_list = index
 
-    def place_block(self, index_list: int) -> bool:
+    def place_block(self, index_list: int):
         '''
         Places block on x and y position
         :param index_list: index of block in block list
-        :return: True if block is placed, False if not
         '''
         block = list(filter(None, Constants.BLOCKS[index_list]))
+        lines = []
 
         for i in range(len(block)):
             line = [*self.__lines[self.__blockpos_y + i]]
@@ -88,12 +104,17 @@ class Map:
             k = 0
             x = self.__blockpos_x - Constants.MAP_LAND_LENGTH
             for j in range(len(line)):
-                if line[j] == ' ': 
-                    if k >= x and k < x + len(block[i]): 
-                        line[j] = block[i][k - x]             
+                if line[j] in Constants.BLOCK_CHARS: 
+                    if k >= x and k < x + len(block[i]) and block[i][k - x] != ' ':
+                        if line[j] != ' ':
+                            Functions.Flags.blocks_intercept = True
+                            return
+                        line[j] = block[i][k - x]            
                     k += 1
 
-            self.__lines[self.__blockpos_y + i] = ''.join(line)
+            lines.append(line)
+
+        for i in range(len(lines)): self.__lines[self.__blockpos_y + i] = ''.join(lines[i])
 
     def move_block(self, x: int, y: int) -> None:
         '''
@@ -138,10 +159,12 @@ class Map:
             self.move_block(self.__blockpos_x, self.__blockpos_y + 1)
         elif key == keyboard.Key.enter and key not in Functions.keys_pressed:
             Functions.Flags.block_placed = True
-        # elif key == keyboard.KeyCode.from_char('x'):
-        #     Stages.set_stage(Constants.STAGES[0])
-        #     self.__block_selected = None
-        #     self.move_block(0, 0)
+        elif key == keyboard.Key.esc and key not in Functions.keys_pressed:
+            self.move_block(0, 0)
+            self.__selected_block_list = None
+            Functions.set_stage(Constants.STAGES[0])
+        elif key == keyboard.KeyCode.from_char('r') and key not in Functions.keys_pressed:
+            self.move_block(Constants.MAP_LAND_LENGTH, self.__top_padding)
 
         Functions.keys_pressed.add(key)
 

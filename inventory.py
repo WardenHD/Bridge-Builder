@@ -108,10 +108,12 @@ class Inventory:
             self.__selected = self.__highlighted
             Functions.set_stage(Constants.STAGES[1])
         elif key == keyboard.Key.esc and key not in Functions.keys_pressed: 
-            Functions.Flags.menu = True
+            Functions.set_stage(Constants.STAGES[4])
         elif key == keyboard.KeyCode.from_char('r') and key not in Functions.keys_pressed:
             Functions.Flags.restart = True
-            Functions.Flags.menu = True
+            Functions.set_stage(Constants.STAGES[4])
+        elif key == keyboard.KeyCode.from_char('t') and key not in Functions.keys_pressed:
+            Functions.Flags.testing = True
 
         Functions.keys_pressed.add(key)
 

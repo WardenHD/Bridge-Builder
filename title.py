@@ -20,7 +20,12 @@ class Title:
         '''
         Prints the title
         '''
-        print(f'{Back.RED} {self.__title} - {Functions.get_stage()}{(Constants.WIDTH - len(self.__title) - len(Functions.get_stage()) - 4) * ' '}{Style.RESET_ALL}')
+        wins_str = 'Wins: ' + str(Functions.Saves.get(Functions.get_selected_profile())[1]) + '  '
+        profile_str = 'Profile ' + str(Functions.get_selected_profile()) + '  '
+        footer = wins_str if Functions.get_stage() == Constants.STAGES[2] or Functions.get_stage() == Constants.STAGES[3] else profile_str
+        spaces = (Constants.WIDTH - len(self.__title) - len(Functions.get_stage()) - 4 - len(footer)) * ' '
+
+        print(f'{Back.RED} {self.__title} - {Functions.get_stage() + spaces + footer}{Style.RESET_ALL}')
 
     def __str__(self) -> str:
         '''

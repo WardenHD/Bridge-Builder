@@ -2,15 +2,19 @@
 File that stores constants and functions for the game
 '''
 from os import name, system
-from colorama import Style, Back
+from colorama import Style
 from pynput import keyboard
+import webbrowser
 
 from flags import Flags
+from saves import Saves
 
 class Constants:
     '''
     Class that stores constants for the game
     '''
+    GITHUB_LINK = "https://github.com/WardenHD/Python-Game"
+    LICENSE_LINK = "https://github.com/WardenHD/Python-Game/blob/main/LICENSE"
 
     # Block variables
     # Block variants list - tuple of 3 lines
@@ -21,14 +25,14 @@ class Constants:
         ('###  ', '  ###', ''), 
         ('  >>>', '>>>  ', ''),
         ('<<<<<', '    <', '    <'), 
-        ('~~~~~', '  ~  ', '  ~  '), 
+        ('?????', '  ?  ', '  ?  '), 
         (':', ':', ':'), 
         (' ; ; ', ';;;;;', ';   ;'), 
         ('  $$$', '  $  ', '$$$  ')
     ]
 
     BLOCK_LINES = 3
-    BLOCK_COLORS = (Back.RED, Back.BLACK, Back.WHITE)
+    BLOCK_CHARS = ''.join(set(''.join([i for sub in BLOCKS for i in sub])))
 
     # Screen size
     WIDTH = 65
@@ -42,12 +46,19 @@ class Constants:
     # Inventory capacity
     INVENTORY_CAPACITY = 5
 
-    # Actions for actionbar
-    ACTIONS = ("Select(Enter)", "Move(Left, Right)", "Info(I)", "Restart(R)", "Test(T)", "Exit(Esc)", 
-               "Place(Enter)", "Move(Arrows)", "Profiles(P)", "Start(Enter)")
-
     # Game stages
-    STAGES = ("Selection", "Placing", "Testing", "You lose", "Testing Suceeded", "Menu")
+    STAGES = ("Selection", "Placing", "Testing Failed", "Testing Suceeded", "Menu", "About", "Profiles")
+
+    # Actions for actionbar  
+    ACTIONS = {
+        STAGES[0]: ("Select(Arrows, Enter)", "Test(T)", "Restart(R)", "Menu(Esc)"),
+        STAGES[1]: ("Place(Enter)", "Move(Arrows)", "Reset Pos(R)", "Cancel(Esc)"),
+        STAGES[2]: ("Menu(Enter)", "Exit(Esc)"),
+        STAGES[3]: ("New Game(Enter)", "Menu(Esc)"),
+        STAGES[4]: ("Start(Enter)", "Profiles(P)", "About(A)", "Exit(Esc)"),
+        STAGES[5]: ("Github Page(G)", "License(L)", "Menu(Esc)"),
+        STAGES[6]: ("Select(Arrows, Enter)", "New(N)", "Delete(D)", "Menu(Esc)")
+    }
 
     # Logo
     TITLE_LOGO = (
@@ -67,13 +78,27 @@ class Constants:
         )
     )
 
+    ABOUT = '''
+Bridge Builder is a game where you should build a bridge.
+To win, the first line of the bridge mustn't have spaces and
+other lines nust have at least 3 different types of blocks.
+
+Notes:
+The map is flat, but generated with different elevation.
+The blocks that are placed cannot be removed.
+If you lose, the score will be 0.\n
+'''
+
 class Functions:
     '''
     Class that stores essential functions and variables
     '''
-    __stage = Constants.STAGES[0]
+    __stage = Constants.STAGES[4]
+    __selected_profile_id = 1
+    __highlighted_profile_id = 0
     
     Flags = Flags()
+    Saves = Saves()
     keys_pressed = set()
 
     @staticmethod
@@ -125,11 +150,25 @@ class Functions:
             else: result[i] = list(result[i])
 
             for j in range(len(result[i])):
-                result[i][j] = space_color + ' ' if result[i][j] == ' ' else char_color + result[i][j] + Style.RESET_ALL
+                result[i][j] = space_color + ' ' + Style.RESET_ALL if result[i][j] == ' ' else char_color + result[i][j] + Style.RESET_ALL
             
             result[i] = ''.join(result[i])
         
         return result
+    
+    @staticmethod
+    def get_selected_profile() -> int:
+        '''
+        Getter for the selected profile id
+        '''
+        return Functions.__selected_profile_id
+    
+    @staticmethod
+    def get_highlighted_profile() -> int:
+        '''
+        Getter for the highlighted profile in terms of list of all profiles
+        '''
+        return Functions.__highlighted_profile_id
 
     # Handlers for generic keylistener
 
@@ -138,11 +177,49 @@ class Functions:
         Function that is called when a key is pressed. Method for keylistener
         :param key: keycode
         :return: whether to stop the listener
-        ''' 
-        if key == keyboard.Key.esc and key not in Functions.keys_pressed: 
-            if Functions.__stage == Constants.STAGES[5]: Functions.Flags.close = True
-        elif key == keyboard.Key.enter and key not in Functions.keys_pressed:
-            if Functions.__stage == Constants.STAGES[5]: Functions.Flags.menu = False
+        '''
+        if Functions.__stage == Constants.STAGES[4]: 
+            if key == keyboard.Key.esc and key not in Functions.keys_pressed: 
+                Functions.Flags.close = True
+            elif key == keyboard.Key.enter and key not in Functions.keys_pressed:
+                Functions.set_stage(Constants.STAGES[0])
+            elif key == keyboard.KeyCode.from_char('p') and key not in Functions.keys_pressed:
+                Functions.set_stage(Constants.STAGES[6])
+            elif key == keyboard.KeyCode.from_char('a') and key not in Functions.keys_pressed:
+                Functions.set_stage(Constants.STAGES[5])
+        elif Functions.__stage == Constants.STAGES[6]:
+            if key == keyboard.Key.esc and key not in Functions.keys_pressed:
+                Functions.set_stage(Constants.STAGES[4])
+            elif key == keyboard.KeyCode.from_char('n') and key not in Functions.keys_pressed: 
+                Functions.Saves.add()
+            elif key == keyboard.KeyCode.from_char('d') and key not in Functions.keys_pressed: 
+                Functions.Saves.delete(Functions.Saves.get_all()[Functions.__highlighted_profile_id][0])
+            elif key == keyboard.Key.up and key not in Functions.keys_pressed:
+                Functions.__highlighted_profile_id = (Functions.__highlighted_profile_id - 1) % len(Functions.Saves.get_all())
+            elif key == keyboard.Key.down and key not in Functions.keys_pressed:
+                Functions.__highlighted_profile_id = (Functions.__highlighted_profile_id + 1) % len(Functions.Saves.get_all())
+            elif key == keyboard.Key.enter and key not in Functions.keys_pressed:
+                Functions.__selected_profile_id = Functions.Saves.get_all()[Functions.__highlighted_profile_id][0]
+                Functions.set_stage(Constants.STAGES[4])
+        elif Functions.__stage == Constants.STAGES[2]: 
+            if key == keyboard.Key.enter and key not in Functions.keys_pressed:
+                Functions.set_stage(Constants.STAGES[4])
+            if key == keyboard.Key.esc and key not in Functions.keys_pressed:
+                Functions.Flags.close = True
+        elif Functions.__stage == Constants.STAGES[3]: 
+            if key == keyboard.Key.enter and key not in Functions.keys_pressed:
+                Functions.Flags.restart = True
+                Functions.set_stage(Constants.STAGES[4])
+            if key == keyboard.Key.esc and key not in Functions.keys_pressed:
+                Functions.set_stage(Constants.STAGES[4])
+        elif Functions.__stage == Constants.STAGES[5]: 
+            if key == keyboard.KeyCode.from_char('g') and key not in Functions.keys_pressed:
+                webbrowser.open_new_tab(Constants.GITHUB_LINK)
+            elif key == keyboard.KeyCode.from_char('l') and key not in Functions.keys_pressed:
+                webbrowser.open_new_tab(Constants.LICENSE_LINK)
+            elif key == keyboard.Key.esc and key not in Functions.keys_pressed:
+                Functions.set_stage(Constants.STAGES[4])
+
         Functions.keys_pressed.add(key)
 
     def genkeylistener_on_release(key: int) -> bool:
@@ -153,4 +230,3 @@ class Functions:
         '''
         try: Functions.keys_pressed.remove(key)
         except KeyError: pass
-        
