@@ -62,10 +62,7 @@ class Main:
             map.construct()
             Functions.set_stage(Constants.STAGES[0])
 
-        correct_stage = (Functions.get_stage() != Constants.STAGES[4] and Functions.get_stage() != 
-            Constants.STAGES[6] and Functions.get_stage() != Constants.STAGES[5])
-
-        while not Functions.Flags.close and not Functions.Flags.restart and correct_stage:        
+        while not Functions.Flags.close and not Functions.Flags.restart and (Functions.get_stage() != Constants.STAGES[4] and Functions.get_stage() != Constants.STAGES[6] and Functions.get_stage() != Constants.STAGES[5]):        
             print(Cursor.POS(1, 1))
             Functions.clear()
 
