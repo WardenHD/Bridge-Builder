@@ -77,7 +77,6 @@ class Map:
         for i in range(len(self.__lines)):
             if i >= self.__top_padding and i < Constants.MAP_HEIGHT - 1 \
                 and len(set(findall(f"[{Constants.BLOCK_CHARS.replace(' ', '')}]", self.__lines[i]))) < 3: ok = False
-            print(str(i) + ':', ok)
 
         return ok
  
