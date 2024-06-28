@@ -47,9 +47,9 @@ class Main:
                 for line in Constants.ABOUT.splitlines(): print(line.center(65, " "))
             else:
                 for i in Constants.TITLE_LOGO[0]:
-                    print(Fore.BLUE + i.center(60) + Style.RESET_ALL)
+                    print(Fore.LIGHTBLACK_EX + i.center(60) + Style.RESET_ALL)
                 for i in Constants.TITLE_LOGO[1]:
-                    print(Fore.MAGENTA + i.center(60) + Style.RESET_ALL)
+                    print(Fore.LIGHTRED_EX + i.center(60) + Style.RESET_ALL)
 
             separator = Constants.WIDTH * '-'
             print(separator + '\n\n\n\n' + separator, '\n') 
