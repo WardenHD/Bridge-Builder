@@ -19,3 +19,4 @@ To win in this game, the valid bridge must be built. The bridge is valid if top 
  - [Pynput](https://github.com/moses-palmer/pynput)
  - [Pyinstaller](https://pyinstaller.org/en/stable/)
  - [Colorama](https://github.com/tartley/colorama)
+ - [NSIS](https://nsis.sourceforge.io/Main_Page)
